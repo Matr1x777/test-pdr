@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import styled from "styled-components";
 import {NavLink} from "react-router-dom";
 
@@ -51,6 +51,9 @@ const TopInformationBlock = styled.div`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+`
+const CountdownTimer = styled.label`
+  font-size: 18px;
 `
 const Col = styled.div`
   display: flex;
@@ -214,6 +217,8 @@ const AnswerList = styled.label`
 
 let Exam = (props) => {
     const [status, setStatus] = useState(0)
+
+
     let examStart = () => {
         setStatus(1)
     }
@@ -252,9 +257,27 @@ let Exam = (props) => {
 
     ])
 
+    let [minutes,setMinutes] = useState(19)
+    let [seconds,setSeconds] = useState(60)
+    useEffect(() => {
+        let timer = setTimeout(() => {
+            if (seconds > 0 && minutes >= 0) {
+                setSeconds(seconds -= 1)
+            } else if(seconds === 0 && minutes > 0){
+                setMinutes(minutes-=1)
+                setSeconds(59)
+            }else {
+                examEnd()
+            }
+        }, 1000);
+        return () => {
+            clearTimeout(timer);
+        };
+
+    }, [seconds])
+
 
     let ExamProcess = () => {
-
         let nextQuestion = () => {
             setActualQuestion(actualQuestion += 1)
         }
@@ -289,8 +312,6 @@ let Exam = (props) => {
 
         }
 
-
-        let qq = props.questionList
         if(status === 1){
             return(
                 <BodyQuestion>
@@ -301,9 +322,10 @@ let Exam = (props) => {
                               <label>Право на помилку: <b>{failedCount}</b></label>
                               <label>Правильних відповідей: <b>{trueCount}</b></label>
                           </Col>
+                          <CountdownTimer>Залишилося часу: <b>{minutes}:{seconds}</b></CountdownTimer>
                       </TopInformationBlock>
                         <ListQuestions>
-                        {qq.map(e => {
+                        {props.questionList.map(e => {
                             if (e.id > 0 ){
                                if (allResults[e.id].questionResult === true){
                                     return (
@@ -374,8 +396,8 @@ let Exam = (props) => {
         }else if(status === 2){
             return (
                 <FinalBlock>
-                    <FText>{failedCount <= 0 ? "Невдача :(" : "Вітаємо!"}</FText>
-                    <SText>{failedCount <= 0 ? "Нажаль іспит не здано" : "Ти успішно здав цей іспит"}</SText>
+                    <FText>{trueCount <= 18 ? "Невдача :(" : "Вітаємо!"}</FText>
+                    <SText>{trueCount <= 18 ? "Нажаль іспит не здано" : "Ти успішно здав цей іспит"}</SText>
                   <MiniResBlock>
                       <AnswerList>Правильних відповідей: <b>{trueCount}/20</b></AnswerList>
                   </MiniResBlock>
